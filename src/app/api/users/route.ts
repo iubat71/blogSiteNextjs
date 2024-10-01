@@ -24,7 +24,7 @@ export async function GET(request: NextRequest,res:NextResponse) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log(typeof body)
+    // console.log(typeof body)
     const user=await prisma.user.create({data:body})
 
     // console.log(user); // Log the request body

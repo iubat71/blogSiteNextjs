@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 // Define a GET method to fetch a user by ID
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const userId = params.id;  
-
+ 
   try {
     // Fetch the user from the database using Prisma
     const user = await prisma.user.findUnique({

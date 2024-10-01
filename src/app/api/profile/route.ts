@@ -1,31 +1,39 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
 
-const prisma = new PrismaClient();
+export async function POST(req) {
+  // Parse the incoming form data
+  const formData = await req.formData();
+  const bio = formData.get('bio');
+  const authorId = formData.get('authorId');
+  const image = formData.get('imageUrl');
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const { bio, userId } = req.body;
+  // Directory where images will be stored
+  const imagesDirectory = path.join(process.cwd(), 'src/app/images');
 
-    try {
-      const profile = await prisma.profile.create({
-        data: {
-          bio,
-          user: { connect: { id: userId } },
-        },
-      });
-      return res.status(201).json(profile);
-    } catch (error) {
-      return res.status(500).json({ error: 'Profile creation failed' });
-    }
-  } else if (req.method === 'GET') {
-    try {
-      const profiles = await prisma.profile.findMany();
-      return res.status(200).json(profiles);
-    } catch (error) {
-      return res.status(500).json({ error: 'Failed to fetch profiles' });
-    }
-  } else {
-    return res.status(405).json({ error: 'Method not allowed' });
+  // Ensure the directory exists
+  if (!fs.existsSync(imagesDirectory)) {
+    fs.mkdirSync(imagesDirectory, { recursive: true });
   }
+
+  // Process the image and save it in src/app/images
+  let imageUrl = null;
+  if (image) {
+    const buffer = await image.arrayBuffer();
+    const imageName = `uploaded-${Date.now()}.jpg`; // Example naming convention
+    const imagePath = path.join(imagesDirectory, imageName);
+
+    // Save the image to src/app/images
+    fs.writeFileSync(imagePath, Buffer.from(buffer));
+
+    imageUrl = `/images/${imageName}`;  // URL to access the image
+  }
+
+  // Return the response (you would persist this data using Prisma)
+  return NextResponse.json({
+    bio,
+    authorId,
+    imageUrl,
+  });
 }
