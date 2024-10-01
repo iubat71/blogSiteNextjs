@@ -1,28 +1,32 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse, NextRequest } from "next/server";
 import { PrismaClient } from '@prisma/client';
+import { use } from "react";
 
 const prisma = new PrismaClient();
+// To handle a GET request to /api
+export async function GET(request: NextRequest,res:NextResponse) {
+  try {
+    // Note: request.body for GET requests usually doesn't contain any body.
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const { name } = req.body;
+    const allUsers = await prisma.category.findMany()
+    
 
-    try {
-      const category = await prisma.category.create({
-        data: { name },
-      });
-      return res.status(201).json(category);
-    } catch (error) {
-      return res.status(500).json({ error: 'Category creation failed' });
-    }
-  } else if (req.method === 'GET') {
-    try {
-      const categories = await prisma.category.findMany();
-      return res.status(200).json(categories);
-    } catch (error) {
-      return res.status(500).json({ error: 'Failed to fetch categories' });
-    }
-  } else {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return NextResponse.json({ data: allUsers }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "An error occurred while processing the GET request." }, { status: 500 });
+  }
+}
+
+// To handle a POST request to /api
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const user=await prisma.category.create({data:body})
+
+    return NextResponse.json({ message: "POST request successful", data: user }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "An error occurred while processing the POST request." }, { status: 500 });
   }
 }
