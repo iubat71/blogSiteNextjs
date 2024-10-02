@@ -5,6 +5,19 @@ import { PrismaClient } from '@prisma/client';  // Import Prisma Client
 
 const prisma = new PrismaClient();  // Instantiate Prisma Client
 
+export async function GET(request: NextRequest,res:NextResponse) {
+  try {
+ 
+    const allProfile = await prisma.profile.findMany()
+    
+
+    return NextResponse.json({ data: allProfile }, { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "An error occurred while processing the GET request." }, { status: 500 });
+  }
+}
+
 export async function POST(req) {
   // Parse the incoming form data
   const formData = await req.formData();
@@ -13,10 +26,8 @@ export async function POST(req) {
   const authorId = parseInt(formData.get('authorId'), 10);  // Ensure it's an integer
   const image = formData.get('imageUrl');
 
-  // Directory where images will be stored (in public/images)
   const imagesDirectory = path.join(process.cwd(), 'public/images');
 
-  // Ensure the directory exists
   if (!fs.existsSync(imagesDirectory)) {
     fs.mkdirSync(imagesDirectory, { recursive: true });
   }
@@ -28,10 +39,9 @@ export async function POST(req) {
     const imageName = `uploaded-${Date.now()}.jpg`; // Example naming convention
     const imagePath = path.join(imagesDirectory, imageName);
 
-    // Save the image to public/images
     fs.writeFileSync(imagePath, Buffer.from(buffer));
 
-    imageUrl = `/images/${imageName}`;  // URL to access the image
+    imageUrl = `/images/${imageName}`;  
   }
 
   // Save the profile data to the database
@@ -40,9 +50,9 @@ export async function POST(req) {
       data: {
         bio,
         author: {
-          connect: { id: authorId },  // Link to existing user
+          connect: { id: authorId },  
         },
-        imageUrl,  // Save the image URL
+        imageUrl,  
       },
     });
 
@@ -57,3 +67,5 @@ export async function POST(req) {
     await prisma.$disconnect();  // Clean up the Prisma client
   }
 }
+
+
