@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { PrismaClient } from '@prisma/client';  // Import Prisma Client
-
-const prisma = new PrismaClient();  // Instantiate Prisma Client
-
+import { PrismaClient } from '@prisma/client';  
+const prisma = new PrismaClient();  
+const user = await prisma.user.findUnique({
+  omit: {
+    email: true,
+    password: true,
+  },
+  where: {
+    id: 1,
+  },
+})
 export async function GET(request: NextRequest,res:NextResponse) {
   try {
  
     const allProfile = await prisma.profile.findMany()
-    
-
     return NextResponse.json({ data: allProfile }, { status: 200 });
   } catch (error) {
     console.error(error);
